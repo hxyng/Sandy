@@ -149,6 +149,7 @@
     gap: clamp(18px, 4vw, 40px);
     flex-wrap: wrap;
   }
+  .yes-anchor { display: inline-flex; align-items: center; justify-content: center; }
 
   .btn {
     font-family: var(--sans);
@@ -500,8 +501,23 @@
   }
 
   @media (max-width: 640px) {
-    .arena { gap: 16px; }
+    .arena { gap: 0; min-height: 160px; }
     .btn { padding: 14px 32px; }
+
+    /* Anchor Yes to a fixed spot so No's text/size changes can't shift it. */
+    .yes-anchor {
+      position: absolute;
+      left: calc(50% - 40px);
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+    .btn-no {
+      position: absolute;
+      left: calc(50% + 40px);
+      top: 50%;
+      transform: translateY(-50%);
+    }
 
     /* Shrink the reveal card */
     .overlay { padding: 10px; }
@@ -592,7 +608,7 @@
       <p class="sub" id="sub">Take your time. There's really only one correct answer, though.</p>
 
       <div class="arena" role="group" aria-label="Your answer">
-        <button id="yes" class="btn btn-yes" aria-label="Yes, I'd love to">Yes</button>
+        <span class="yes-anchor"><button id="yes" class="btn btn-yes" aria-label="Yes, I'd love to">Yes</button></span>
         <button id="no"  class="btn btn-no"  aria-label="No">No</button>
       </div>
 
