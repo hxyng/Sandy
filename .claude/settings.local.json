@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf ~/.claude/skills/ui-ux-pro-max-skill)",
+      "Bash(npm --version)",
+      "Bash(py --version)",
+      "Bash(npx *)",
+      "Bash(where python *)",
+      "Bash(where python3 *)",
+      "Bash(where py *)"
+    ]
+  }
+}

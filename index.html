@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#eee6d0" />
+<title>A Little Question</title>
+<meta name="description" content="A small question for someone special." />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>.</text></svg>" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<style>
+  :root {
+    /* Turtle palette: sage, olive, moss, warm beige, cream, white */
+    --sage-1: #e6ecd7;
+    --sage-2: #c9d6b2;
+    --sage-3: #a8c09a;
+    --moss:   #7a9460;
+    --olive:  #5d7a4a;
+    --forest: #3e5a2e;
+    --beige-1:#f5efdf;
+    --beige-2:#ebe3cc;
+    --cream:  #fbf8ec;
+    --white:  #ffffff;
+    --ink:    #1f2a1d;
+    --ink-soft: #4a5a42;
+    --ink-faint: #8a9a7a;
+    --shadow: 0 24px 60px -20px rgba(40, 60, 30, 0.22);
+    --serif: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    --sans:  "Manrope", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--beige-1);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    min-height: 100dvh;
+    position: relative;
+  }
+
+  /* Layered background: warm beige to pale sage */
+  .bg {
+    position: fixed; inset: 0; z-index: -3;
+    background:
+      radial-gradient(1200px 800px at 18% 20%, rgba(201, 214, 178, 0.8), transparent 60%),
+      radial-gradient(1000px 700px at 85% 30%, rgba(230, 236, 215, 0.85), transparent 60%),
+      radial-gradient(900px 900px at 50% 95%, rgba(168, 192, 154, 0.55), transparent 60%),
+      linear-gradient(160deg, var(--cream) 0%, var(--beige-1) 45%, var(--sage-1) 100%);
+  }
+  .bg::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  /* Floating blurred orbs (green + beige) */
+  .orb {
+    position: fixed; z-index: -2;
+    border-radius: 50%;
+    filter: blur(55px);
+    opacity: 0.8;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .orb.o1 { width: 360px; height: 360px; top: -80px; left: -80px;
+    background: radial-gradient(circle at 30% 30%, #c9d6b2, #7a9460 75%); animation: float1 14s ease-in-out infinite; }
+  .orb.o2 { width: 300px; height: 300px; bottom: -60px; right: -60px;
+    background: radial-gradient(circle at 40% 40%, #ebe3cc, #c6b88f 80%); animation: float2 18s ease-in-out infinite; }
+  .orb.o3 { width: 220px; height: 220px; top: 40%; right: 10%;
+    background: radial-gradient(circle at 50% 50%, #e6ecd7, #a8c09a 80%); animation: float3 16s ease-in-out infinite; }
+
+  @keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(40px, 60px); } }
+  @keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-50px, -30px); } }
+  @keyframes float3 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-20px, 30px); } }
+
+  main {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: clamp(20px, 4vw, 48px);
+    position: relative;
+    z-index: 1;
+  }
+
+  .stage {
+    width: 100%;
+    max-width: 640px;
+    text-align: center;
+    position: relative;
+  }
+
+  /* Eyebrow, hint, signoff, footer: tracked uppercase sans (no cursive) */
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: clamp(0.78rem, 1.4vw, 0.86rem);
+    color: var(--olive);
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(2.4rem, 7vw, 4.2rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 18px;
+  }
+  .title .bold { font-style: normal; font-weight: 600; color: var(--forest); }
+
+  .sub {
+    font-family: var(--sans);
+    font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+    color: var(--ink-soft);
+    max-width: 460px;
+    margin: 0 auto 44px;
+    line-height: 1.6;
+  }
+
+  .arena {
+    position: relative;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(18px, 4vw, 40px);
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    border: none;
+    cursor: pointer;
+    padding: 16px 40px;
+    border-radius: 999px;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.35s ease,
+                background 0.35s ease,
+                color 0.35s ease,
+                font-size 0.35s ease,
+                padding 0.35s ease;
+    will-change: transform, font-size;
+    min-width: 120px;
+    min-height: 48px;
+  }
+  .btn:focus-visible { outline: 3px solid rgba(93, 122, 74, 0.45); outline-offset: 4px; }
+
+  .btn-yes {
+    background: linear-gradient(135deg, #7a9460 0%, #3e5a2e 100%);
+    color: var(--cream);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.18);
+    position: relative;
+    z-index: 2;
+  }
+  .btn-yes:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 28px 70px -20px rgba(62, 90, 46, 0.45); }
+  .btn-yes:active { transform: translateY(0) scale(0.98); }
+
+  .btn-no {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--ink-soft);
+    border: 1px solid rgba(168, 192, 154, 0.45);
+    box-shadow: 0 8px 24px -12px rgba(40, 60, 30, 0.18);
+    position: relative;
+  }
+  .btn-no:hover { color: var(--ink); border-color: rgba(168, 192, 154, 0.7); }
+
+  .hint {
+    margin-top: 32px;
+    font-family: var(--sans);
+    color: var(--ink-faint);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .hint.show { opacity: 1; transform: translateY(0); }
+
+  /* ==== Reveal card overlay ==== */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(20, 32, 18, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: grid; place-items: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+    z-index: 100;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+
+  .card {
+    width: 100%;
+    max-width: 580px;
+    background: linear-gradient(170deg, var(--cream) 0%, var(--sage-1) 100%);
+    border-radius: 28px;
+    padding: clamp(28px, 5vw, 48px) clamp(24px, 4vw, 44px);
+    box-shadow: 0 40px 100px -20px rgba(40, 60, 30, 0.45);
+    position: relative;
+    transform: scale(0.92) translateY(20px);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+    overflow: hidden;
+  }
+  .overlay.show .card { transform: scale(1) translateY(0); }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(93, 122, 74, 0.22);
+    border-radius: 22px;
+    pointer-events: none;
+  }
+
+  /* Little turtle watermark on the card */
+  .turtle-mark {
+    display: block;
+    margin: 0 auto 12px;
+    width: 56px;
+    height: 56px;
+    color: var(--olive);
+    opacity: 0.9;
+    object-fit: contain;
+  }
+
+  .card-eyebrow {
+    font-family: var(--sans);
+    color: var(--olive);
+    text-transform: uppercase;
+    letter-spacing: 0.26em;
+    font-weight: 600;
+    font-size: 0.82rem;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.8rem, 4.5vw, 2.4rem);
+    line-height: 1.15;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+  .card-title .bold { font-style: normal; font-weight: 600; color: var(--forest); }
+  .card-msg {
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+    line-height: 1.65;
+    margin: 0 auto 28px;
+    max-width: 360px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 0 auto 28px;
+    max-width: 380px;
+  }
+  .detail {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(93, 122, 74, 0.2);
+    border-radius: 16px;
+    padding: 16px 12px;
+  }
+  .detail .label {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .detail .value {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .detail .value small {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .surprise {
+    background: linear-gradient(135deg, rgba(93, 122, 74, 0.08), rgba(62, 90, 46, 0.12));
+    border: 1px dashed rgba(93, 122, 74, 0.4);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin: 0 auto 28px;
+    max-width: 380px;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--forest);
+    line-height: 1.55;
+  }
+  .surprise .wink {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1rem;
+    display: block;
+    margin-top: 6px;
+    color: var(--olive);
+  }
+  .surprise strong { color: var(--forest); font-weight: 700; }
+
+  /* Polaroid photos */
+  .polaroids {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    margin: 0 auto 28px;
+    min-height: 140px;
+    position: relative;
+  }
+  .polaroid {
+    width: 160px;
+    background: var(--white);
+    padding: 10px 10px 40px;
+    box-shadow: 0 14px 30px -10px rgba(40, 60, 30, 0.28);
+    border-radius: 4px;
+    position: relative;
+  }
+  .polaroid + .polaroid { margin-left: -28px; }
+  .polaroid:nth-child(1) { transform: rotate(-7deg); z-index: 1; }
+  .polaroid:nth-child(2) { transform: rotate(2deg) translateY(-10px); z-index: 2; }
+  .polaroid:nth-child(3) { transform: rotate(6deg); z-index: 1; }
+  .polaroid img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    background: linear-gradient(135deg, var(--sage-2), var(--sage-3));
+  }
+  .polaroid .cap {
+    position: absolute;
+    bottom: 10px; left: 0; right: 0;
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #7a9460, #3e5a2e);
+    color: var(--cream);
+    font-family: var(--sans);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.98rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card-cta:hover { transform: translateY(-2px); box-shadow: 0 28px 70px -20px rgba(62, 90, 46, 0.45); }
+
+  .signoff {
+    font-family: var(--sans);
+    color: var(--olive);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-weight: 600;
+    margin-top: 18px;
+  }
+
+  /* Floating celebratory shapes */
+  .float-item {
+    position: fixed;
+    bottom: -30px;
+    width: 22px;
+    height: 22px;
+    pointer-events: none;
+    z-index: 99;
+    animation: rise 5s ease-in forwards;
+  }
+  @keyframes rise {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  .footer {
+    position: fixed;
+    bottom: 14px; left: 0; right: 0;
+    text-align: center;
+    font-family: var(--sans);
+    color: var(--ink-faint);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @media (max-width: 480px) {
+    .arena { gap: 16px; }
+    .btn { padding: 14px 32px; }
+    .polaroid { width: 124px; padding: 8px 8px 32px; }
+    .polaroid + .polaroid { margin-left: -22px; }
+    .polaroid .cap { font-size: 0.88rem; bottom: 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.15s !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="orb o1" aria-hidden="true"></div>
+  <div class="orb o2" aria-hidden="true"></div>
+  <div class="orb o3" aria-hidden="true"></div>
+
+  <main>
+    <section class="stage" aria-labelledby="q-title">
+      <p class="eyebrow">a little question</p>
+      <h1 id="q-title" class="title">
+        Will you go on a <span class="bold">date</span> with me<span style="font-style:normal">?</span>
+      </h1>
+      <p class="sub" id="sub">Take your time. There's really only one correct answer, though.</p>
+
+      <div class="arena" role="group" aria-label="Your answer">
+        <button id="yes" class="btn btn-yes" aria-label="Yes, I'd love to">Yes</button>
+        <button id="no"  class="btn btn-no"  aria-label="No">No</button>
+      </div>
+
+      <p id="hint" class="hint">psst. the green one is the right one</p>
+    </section>
+  </main>
+
+  <!-- Reveal card -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="card-title" aria-hidden="true">
+    <div class="card">
+      <!-- Turtle mark: user-supplied image with SVG fallback -->
+      <img class="turtle-mark" src="images/turtle.png" alt="" onerror="this.style.display='none'; const f=document.getElementById('turtle-fallback'); if(f) f.style.display='block';" onload="if(this.naturalWidth<10){this.onerror&&this.onerror();}" />
+      <svg id="turtle-fallback" class="turtle-mark" viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:none">
+        <ellipse cx="32" cy="34" rx="20" ry="15"/>
+        <path d="M32 22 L32 46 M14 34 L50 34 M18 25 L46 25 M18 43 L46 43" stroke="#fbf8ec" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.8"/>
+        <circle cx="32" cy="34" r="4" fill="#fbf8ec" opacity="0.5"/>
+        <circle cx="52" cy="30" r="5"/>
+        <circle cx="54" cy="29" r="0.9" fill="#fbf8ec"/>
+        <ellipse cx="16" cy="45" rx="4" ry="2.5" transform="rotate(20 16 45)"/>
+        <ellipse cx="48" cy="45" rx="4" ry="2.5" transform="rotate(-20 48 45)"/>
+        <ellipse cx="18" cy="24" rx="3.5" ry="2.2" transform="rotate(-20 18 24)"/>
+        <ellipse cx="46" cy="24" rx="3.5" ry="2.2" transform="rotate(20 46 24)"/>
+        <path d="M12 34 L8 33 L12 35 Z"/>
+      </svg>
+
+      <p class="card-eyebrow">knew it</p>
+      <h2 id="card-title" class="card-title">i <span class="bold">knew</span> you'd say yes.</h2>
+      <p class="card-msg">Mark your calendar. Dress how you want, just show up as you. That's the whole point.</p>
+
+      <div class="polaroids" aria-hidden="true">
+        <div class="polaroid"><img src="images/photo-1.jpeg" alt="" onerror="this.style.background='linear-gradient(135deg,#c9d6b2,#a8c09a)';this.removeAttribute('src')"><span class="cap">us, soon</span></div>
+        <div class="polaroid"><img src="images/photo-2.jpeg" alt="" onerror="this.style.background='linear-gradient(135deg,#ebe3cc,#c6b88f)';this.removeAttribute('src')"><span class="cap">?</span></div>
+        <div class="polaroid"><img src="images/photo-3.jpeg" alt="" onerror="this.style.background='linear-gradient(135deg,#e6ecd7,#7a9460)';this.removeAttribute('src')"><span class="cap">save the date</span></div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail">
+          <div class="label">Date</div>
+          <div class="value">May 6<small>Tuesday</small></div>
+        </div>
+        <div class="detail">
+          <div class="label">Time</div>
+          <div class="value">5:00 PM<small>don't be late (or do, i'll wait)</small></div>
+        </div>
+      </div>
+
+      <div class="surprise">
+        The <strong>where</strong> is a surprise.
+        <span class="wink">trust me on this one.</span>
+      </div>
+
+      <button id="close-card" class="card-cta" type="button">i'll be there</button>
+      <p class="signoff">can't wait</p>
+    </div>
+  </div>
+
+  <p class="footer">with you in mind</p>
+
+<script>
+(() => {
+  const yesBtn   = document.getElementById('yes');
+  const noBtn    = document.getElementById('no');
+  const hint     = document.getElementById('hint');
+  const sub      = document.getElementById('sub');
+  const overlay  = document.getElementById('overlay');
+  const closeBtn = document.getElementById('close-card');
+
+  const noTexts = [
+    "No",
+    "Are you sure?",
+    "Really?",
+    "Really really?",
+    "...think again",
+    "Please?",
+    "Pretty please?",
+    "With a cherry on top?",
+    "Last chance",
+    "Okay but actually",
+    "Don't make me beg",
+    "Fine, i'm begging",
+    "My heart, it hurts",
+    "The Yes button is lonely",
+    "You're breaking my spirit",
+    "One more try?",
+    "Be kind, rewind",
+    "I'll buy snacks",
+    "I'll buy dinner",
+    "I'll buy EVERYTHING",
+    "Have mercy",
+    "Is this the final answer?",
+    "Plot twist: say yes",
+    "Wrong button, try again"
+  ];
+
+  const subTexts = [
+    "Take your time. There's really only one correct answer, though.",
+    "Okay. Try the other one?",
+    "Hmm. Maybe again?",
+    "The Yes button is growing, just saying.",
+    "I'm watching the Yes button grow up so fast.",
+    "At this point it's barely a button anymore.",
+    "You're very close to just clicking Yes, i can tell.",
+    "(the No button is tired. please let it rest.)",
+    "This is the most chase you've ever given me.",
+    "Yes. Say yes. Please."
+  ];
+
+  let noClicks = 0;
+
+  function pick(arr, exclude) {
+    if (arr.length <= 1) return arr[0];
+    let v;
+    do { v = arr[Math.floor(Math.random() * arr.length)]; } while (v === exclude);
+    return v;
+  }
+
+  function onNo() {
+    noClicks += 1;
+
+    const scale = Math.min(1 + noClicks * 0.18, 2.6);
+    const pad   = Math.min(16 + noClicks * 4, 44);
+    const fs    = Math.min(1.05 + noClicks * 0.12, 2.2);
+    yesBtn.style.transform = `scale(${scale})`;
+    yesBtn.style.fontSize  = fs + 'rem';
+    yesBtn.style.padding   = pad + 'px ' + (pad * 2.4) + 'px';
+
+    noBtn.textContent = pick(noTexts, noBtn.textContent);
+
+    const noScale = Math.max(1 - noClicks * 0.08, 0.55);
+    noBtn.style.transform = `scale(${noScale})`;
+    noBtn.style.opacity   = Math.max(0.4, 1 - noClicks * 0.08);
+
+    if (noClicks >= 2) startRunning();
+
+    sub.style.opacity = 0;
+    setTimeout(() => {
+      const idx = Math.min(noClicks, subTexts.length - 1);
+      sub.textContent = subTexts[idx] || pick(subTexts, sub.textContent);
+      sub.style.transition = 'opacity 0.4s ease';
+      sub.style.opacity = 1;
+    }, 200);
+
+    if (noClicks === 1) hint.classList.add('show');
+
+    yesBtn.animate(
+      [{ transform: `scale(${scale}) rotate(0deg)` },
+       { transform: `scale(${scale}) rotate(-3deg)` },
+       { transform: `scale(${scale}) rotate(3deg)` },
+       { transform: `scale(${scale}) rotate(0deg)` }],
+      { duration: 320, easing: 'ease-in-out' }
+    );
+  }
+
+  let runAttached = false;
+  function startRunning() {
+    if (runAttached) return;
+    runAttached = true;
+    noBtn.style.position = 'relative';
+    noBtn.style.transition += ', left 0.35s ease, top 0.35s ease';
+
+    const dodge = () => {
+      const maxX = Math.min(window.innerWidth * 0.35, 260);
+      const maxY = Math.min(window.innerHeight * 0.25, 180);
+      const dx = (Math.random() * 2 - 1) * maxX;
+      const dy = (Math.random() * 2 - 1) * maxY;
+      noBtn.style.left = dx + 'px';
+      noBtn.style.top  = dy + 'px';
+    };
+    noBtn.addEventListener('mouseenter', dodge);
+    noBtn.addEventListener('focus', dodge);
+    noBtn.addEventListener('touchstart', dodge, { passive: true });
+  }
+
+  function onYes() {
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden', 'false');
+    closeBtn.focus();
+    celebrate();
+    spawnFloats();
+  }
+
+  function celebrate() {
+    if (typeof confetti !== 'function') return;
+    const colors = ['#7a9460', '#a8c09a', '#c9d6b2', '#ebe3cc', '#f5efdf', '#3e5a2e'];
+    const end = Date.now() + 1400;
+    (function frame() {
+      confetti({ particleCount: 4, angle: 60,  spread: 70, origin: { x: 0 }, colors, scalar: 0.9 });
+      confetti({ particleCount: 4, angle: 120, spread: 70, origin: { x: 1 }, colors, scalar: 0.9 });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+    confetti({ particleCount: 140, spread: 100, origin: { y: 0.6 }, colors, scalar: 1.1 });
+  }
+
+  // Preload the turtle image once so floats and card share the same asset
+  const TURTLE_SRC = 'images/turtle.png';
+  let hasTurtleImg = false;
+  (() => {
+    const probe = new Image();
+    probe.onload = () => { hasTurtleImg = probe.naturalWidth > 10; };
+    probe.src = TURTLE_SRC;
+  })();
+
+  // Floating turtles + leaves in greens/beiges
+  function spawnFloats() {
+    const turtleSvg = `<svg viewBox="0 0 64 64" fill="#5d7a4a" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="32" cy="34" rx="20" ry="15"/>
+      <circle cx="52" cy="30" r="5"/>
+      <ellipse cx="16" cy="45" rx="4" ry="2.5" transform="rotate(20 16 45)"/>
+      <ellipse cx="48" cy="45" rx="4" ry="2.5" transform="rotate(-20 48 45)"/>
+      <ellipse cx="18" cy="24" rx="3.5" ry="2.2" transform="rotate(-20 18 24)"/>
+      <ellipse cx="46" cy="24" rx="3.5" ry="2.2" transform="rotate(20 46 24)"/>
+      <path d="M32 22 L32 46 M14 34 L50 34" stroke="#fbf8ec" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    </svg>`;
+    const leafSvg = `<svg viewBox="0 0 24 24" fill="#7a9460" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2c-5 3-9 7-9 13 0 3 2 5 5 5 6 0 13-4 13-12 0-2-1-5-2-6-2 2-5 1-7 0z"/>
+      <path d="M12 4c-3 3-6 7-7 13" stroke="#3e5a2e" stroke-width="0.8" fill="none"/>
+    </svg>`;
+    const turtleImg = `<img src="${TURTLE_SRC}" alt="" style="width:100%;height:100%;object-fit:contain;display:block" />`;
+
+    for (let i = 0; i < 16; i++) {
+      const el = document.createElement('div');
+      el.className = 'float-item';
+      // If the turtle file exists, use it ~60% of the time; otherwise fall back to SVGs
+      const r = Math.random();
+      el.innerHTML = hasTurtleImg
+        ? (r < 0.6 ? turtleImg : leafSvg)
+        : (r < 0.5 ? turtleSvg : leafSvg);
+      el.style.left = (Math.random() * 100) + 'vw';
+      el.style.animationDelay = (Math.random() * 1.4) + 's';
+      el.style.animationDuration = (3.8 + Math.random() * 2.8) + 's';
+      el.style.opacity = 0.75 + Math.random() * 0.25;
+      const s = 18 + Math.random() * 30;
+      el.style.width  = s + 'px';
+      el.style.height = s + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 7200);
+    }
+  }
+
+  function closeCard() {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+    yesBtn.focus();
+  }
+
+  yesBtn.addEventListener('click', onYes);
+  noBtn.addEventListener('click', onNo);
+  closeBtn.addEventListener('click', closeCard);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCard(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('show')) closeCard();
+  });
+})();
+</script>
+</body>
+</html>
