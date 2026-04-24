@@ -396,16 +396,16 @@
   }
   .polaroid + .polaroid { margin-left: -28px; }
   .polaroid:nth-child(1) {
-    transform: rotate(-11deg);
+    transform: rotate(-11deg) translateX(-12px);
     z-index: 3;
     box-shadow:
       0 3px 6px rgba(40, 60, 30, 0.15),
       0 14px 28px -6px rgba(40, 60, 30, 0.3),
       0 36px 60px -14px rgba(40, 60, 30, 0.45);
   }
-  .polaroid:nth-child(2) { transform: rotate(2deg) translateY(-14px); z-index: 1; }
+  .polaroid:nth-child(2) { transform: rotate(2deg) translateY(-24px); z-index: 1; }
   .polaroid:nth-child(3) {
-    transform: rotate(10deg);
+    transform: rotate(10deg) translateX(12px);
     z-index: 3;
     box-shadow:
       0 3px 6px rgba(40, 60, 30, 0.15),
@@ -519,7 +519,7 @@
     .card-msg { font-size: 0.88rem; margin-bottom: 14px; max-width: none; }
 
     /* Polaroids: tilted side ones, flat middle. Gap lets rotated corners clear. */
-    .polaroids { margin-bottom: 14px; min-height: auto; gap: 10px; align-items: center; }
+    .polaroids { margin-bottom: 14px; min-height: auto; gap: 16px; align-items: center; }
     .polaroid {
       width: 86px;
       padding: 5px 5px 22px;
@@ -538,7 +538,7 @@
         0 12px 22px -4px rgba(40, 60, 30, 0.32),
         0 28px 44px -10px rgba(40, 60, 30, 0.42);
     }
-    .polaroid:nth-child(2) { transform: translateY(-10px); z-index: 1; }
+    .polaroid:nth-child(2) { transform: translateY(-18px); z-index: 1; }
     .polaroid:nth-child(3) {
       transform: rotate(7deg) translateY(-2px) scale(1.04);
       z-index: 3;
