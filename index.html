@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#eee6d0" />
+<meta name="theme-color" content="#e6ecd7" />
 <title>A Little Question</title>
 <meta name="description" content="A small question for someone special." />
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='48' font-size='48'>.</text></svg>" />
@@ -37,15 +37,21 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; }
-  html { -webkit-text-size-adjust: 100%; }
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* Green bg on html kills white gaps during iOS overscroll / pull-to-refresh */
+    background: var(--sage-1);
+    background: linear-gradient(160deg, var(--cream) 0%, var(--beige-1) 45%, var(--sage-1) 100%);
+  }
   body {
     font-family: var(--sans);
     color: var(--ink);
-    background: var(--beige-1);
+    background: transparent;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
     min-height: 100dvh;
     position: relative;
+    overscroll-behavior-y: none;
   }
 
   /* Layered background: warm beige to pale sage */
@@ -207,7 +213,7 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     display: grid; place-items: center;
-    padding: 20px;
+    padding: 16px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.6s ease;
@@ -218,16 +224,20 @@
   .card {
     width: 100%;
     max-width: 580px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
     background: linear-gradient(170deg, var(--cream) 0%, var(--sage-1) 100%);
     border-radius: 28px;
-    padding: clamp(28px, 5vw, 48px) clamp(24px, 4vw, 44px);
+    padding: clamp(32px, 5vw, 56px) clamp(28px, 5vw, 52px);
     box-shadow: 0 40px 100px -20px rgba(40, 60, 30, 0.45);
     position: relative;
     transform: scale(0.92) translateY(20px);
     transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     text-align: center;
-    overflow: hidden;
+    scrollbar-width: thin;
   }
+  .card::-webkit-scrollbar { width: 6px; }
+  .card::-webkit-scrollbar-thumb { background: rgba(93, 122, 74, 0.3); border-radius: 3px; }
   .overlay.show .card { transform: scale(1) translateY(0); }
 
   .card::before {
@@ -438,12 +448,56 @@
     z-index: 0;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
     .arena { gap: 16px; }
     .btn { padding: 14px 32px; }
-    .polaroid { width: 124px; padding: 8px 8px 32px; }
-    .polaroid + .polaroid { margin-left: -22px; }
-    .polaroid .cap { font-size: 0.88rem; bottom: 8px; }
+
+    /* Shrink the reveal card */
+    .overlay { padding: 10px; }
+    .card {
+      max-width: 360px;
+      border-radius: 22px;
+      padding: 28px 24px;
+      max-height: calc(100dvh - 20px);
+    }
+    .card::before { inset: 6px; border-radius: 16px; }
+
+    .turtle-mark { width: 38px; height: 38px; margin-bottom: 4px; }
+    .card-eyebrow { margin-bottom: 4px; font-size: 0.7rem; letter-spacing: 0.22em; }
+    .card-title { font-size: 1.55rem; margin-bottom: 6px; }
+    .card-msg { font-size: 0.88rem; margin-bottom: 14px; max-width: none; }
+
+    /* Polaroids: flat, no rotation, real gap. No overlap is possible. */
+    .polaroids { margin-bottom: 14px; min-height: auto; gap: 6px; }
+    .polaroid {
+      width: 86px;
+      padding: 5px 5px 22px;
+      border-radius: 2px;
+    }
+    .polaroid + .polaroid { margin-left: 0; }
+    .polaroid:nth-child(1),
+    .polaroid:nth-child(2),
+    .polaroid:nth-child(3) { transform: none; z-index: auto; }
+    .polaroid .cap { font-size: 0.75rem; bottom: 4px; font-weight: 500; }
+
+    .detail-grid { margin-bottom: 14px; gap: 8px; max-width: none; }
+    .detail { padding: 10px 8px; border-radius: 12px; }
+    .detail .label { font-size: 0.62rem; letter-spacing: 0.16em; }
+    .detail .value { font-size: 1.05rem; }
+    .detail .value small { font-size: 0.7rem; margin-top: 2px; }
+
+    .surprise { margin-bottom: 14px; padding: 10px 12px; font-size: 0.82rem; border-radius: 12px; }
+    .surprise .wink { font-size: 0.9rem; margin-top: 4px; }
+
+    .card-cta { padding: 11px 22px; font-size: 0.92rem; }
+    .signoff { margin-top: 10px; font-size: 0.68rem; }
+  }
+
+  @media (max-height: 720px) {
+    .card-msg { margin-bottom: 16px; }
+    .polaroids { margin-bottom: 14px; }
+    .detail-grid { margin-bottom: 14px; }
+    .surprise { margin-bottom: 14px; padding: 10px 14px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
