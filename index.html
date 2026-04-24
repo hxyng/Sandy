@@ -396,7 +396,7 @@
   }
   .polaroid + .polaroid { margin-left: -28px; }
   .polaroid:nth-child(1) {
-    transform: rotate(-7deg);
+    transform: rotate(-11deg);
     z-index: 3;
     box-shadow:
       0 3px 6px rgba(40, 60, 30, 0.15),
@@ -405,7 +405,7 @@
   }
   .polaroid:nth-child(2) { transform: rotate(2deg) translateY(8px); z-index: 1; }
   .polaroid:nth-child(3) {
-    transform: rotate(6deg);
+    transform: rotate(10deg);
     z-index: 3;
     box-shadow:
       0 3px 6px rgba(40, 60, 30, 0.15),
@@ -518,8 +518,8 @@
     .card-title { font-size: 1.55rem; margin-bottom: 6px; }
     .card-msg { font-size: 0.88rem; margin-bottom: 14px; max-width: none; }
 
-    /* Polaroids: flat, no rotation, real gap. No overlap is possible. */
-    .polaroids { margin-bottom: 14px; min-height: auto; gap: 6px; align-items: flex-start; }
+    /* Polaroids: tilted side ones, flat middle. Gap lets rotated corners clear. */
+    .polaroids { margin-bottom: 14px; min-height: auto; gap: 10px; align-items: center; }
     .polaroid {
       width: 86px;
       padding: 5px 5px 22px;
@@ -531,7 +531,7 @@
     }
     .polaroid + .polaroid { margin-left: 0; }
     .polaroid:nth-child(1) {
-      transform: translateY(-2px) scale(1.04);
+      transform: rotate(-7deg) translateY(-2px) scale(1.04);
       z-index: 3;
       box-shadow:
         0 3px 6px rgba(40, 60, 30, 0.18),
@@ -540,7 +540,7 @@
     }
     .polaroid:nth-child(2) { transform: translateY(6px); z-index: 1; }
     .polaroid:nth-child(3) {
-      transform: translateY(-2px) scale(1.04);
+      transform: rotate(7deg) translateY(-2px) scale(1.04);
       z-index: 3;
       box-shadow:
         0 3px 6px rgba(40, 60, 30, 0.18),
